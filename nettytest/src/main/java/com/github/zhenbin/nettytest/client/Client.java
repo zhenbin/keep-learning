@@ -1,4 +1,4 @@
-package com.github.zhenbin.keeplearning.nettytest.client;
+package com.github.zhenbin.nettytest.client;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;

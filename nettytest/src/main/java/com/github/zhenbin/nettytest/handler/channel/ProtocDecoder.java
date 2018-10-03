@@ -1,6 +1,6 @@
-package com.github.zhenbin.keeplearning.nettytest.handler.channel;
+package com.github.zhenbin.nettytest.handler.channel;
 
-import com.github.zhenbin.keeplearning.nettytest.dto.ProtocMsg;
+import com.github.zhenbin.nettytest.dto.ProtocMsg;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;

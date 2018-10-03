@@ -1,4 +1,4 @@
-package com.github.zhenbin.keeplearning.nettytest.handler.business;
+package com.github.zhenbin.nettytest.handler.business;
 
 public class EchoHandler implements Handler
 {
