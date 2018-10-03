@@ -1,4 +1,4 @@
-package com.zhenbin;
+package com.github.zhenbin.keeplearning.nettytest.dto;
 
 public class ProtocMsg
 {

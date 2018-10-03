@@ -1,5 +1,6 @@
-package com.zhenbin;
+package com.github.zhenbin.keeplearning.nettytest.handler.channel;
 
+import com.github.zhenbin.keeplearning.nettytest.dto.ProtocMsg;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
@@ -16,31 +17,17 @@ public class ProtocDecoder extends LengthFieldBasedFrameDecoder
     private static final int INITIAL_BYTES_TO_STRIP = 0;
     private static final boolean FAIL_FAST = false;
 
-    private static final int HEADER_SIZE = LENGTH_FIELD_OFFSET + LENGTH_FIELD_LENGTH;
-
     public ProtocDecoder() {
         super(BYTE_ORDER, MAX_FRAME_LENGTH, LENGTH_FIELD_OFFSET, LENGTH_FIELD_LENGTH, LENGTH_ADJUSTMENT, INITIAL_BYTES_TO_STRIP, FAIL_FAST);
     }
 
     protected Object decode(ChannelHandlerContext ctx, ByteBuf in) throws Exception {
-//        super.decode(ctx, in);
-        System.out.println("start decoding ...");
-//        if (in.readableBytes() < HEADER_SIZE)
-//        {
-//            System.out.println("too small");
-//            throw new Exception("too small");
-//        }
+        in = (ByteBuf) super.decode(ctx, in);
         byte type = in.readByte();
-        // 如果是Little Endian则使用readIntLE
         int length = in.readInt();
-//        if (in.readableBytes() < length)
-//        {
-//            System.out.println("too short");
-//            throw new Exception("too short");
-//        }
         byte[] bytes = new byte[length];
         in.readBytes(bytes, 0, length);
-        System.out.println(type + " " + length + " " + new String(bytes));
+        System.out.println(String.format("type: %d, body: %s", type, new String(bytes)));
         return new ProtocMsg(type, bytes);
     }
 }

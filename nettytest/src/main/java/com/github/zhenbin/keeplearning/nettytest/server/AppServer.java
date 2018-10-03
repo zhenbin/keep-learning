@@ -1,5 +1,9 @@
-package com.zhenbin;
+package com.github.zhenbin.keeplearning.nettytest.server;
 
+import com.github.zhenbin.keeplearning.nettytest.dto.ProtocMsg;
+import com.github.zhenbin.keeplearning.nettytest.handler.business.EchoHandler;
+import com.github.zhenbin.keeplearning.nettytest.handler.business.Handler;
+import com.github.zhenbin.keeplearning.nettytest.handler.channel.ProtocDecoder;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -123,7 +127,6 @@ public class AppServer {
             ctx.close();
         }
     }
-
 
     public static void main(String[] args) throws Exception {
         new AppServer(12354).start();

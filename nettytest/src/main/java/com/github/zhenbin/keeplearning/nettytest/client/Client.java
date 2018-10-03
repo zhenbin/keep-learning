@@ -1,9 +1,15 @@
+package com.github.zhenbin.keeplearning.nettytest.client;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 
-import java.io.*;
+import java.io.DataInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.nio.charset.Charset;
 
 public class Client {
     public static void main(String[] args) {
@@ -21,12 +27,10 @@ public class Client {
             // 如果是little-endian则使用writeIntLE
             byteBuf.writeInt(bs.length);
             byteBuf.writeBytes(bs);
-            System.out.println(byteBuf.readableBytes());
-            byte[] o = new byte[byteBuf.readableBytes()];
-            byteBuf.readBytes(o, 0, byteBuf.readableBytes());
+            System.out.println(byteBuf.toString(Charset.forName("UTF-8")));
 
-            System.out.println(new String(o));
-            os.write(o);
+            int offset = byteBuf.arrayOffset() + byteBuf.readerIndex();
+            os.write(byteBuf.array(), offset, byteBuf.readableBytes());
             os.flush();
 
             //读取服务器返回的消息

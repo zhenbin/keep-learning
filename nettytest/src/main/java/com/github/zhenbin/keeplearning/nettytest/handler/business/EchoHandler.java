@@ -1,6 +1,6 @@
-package com.zhenbin;
+package com.github.zhenbin.keeplearning.nettytest.handler.business;
 
-public class EchoHandler implements com.zhenbin.Handler
+public class EchoHandler implements Handler
 {
     public byte[] process(byte[] msg)
     {
