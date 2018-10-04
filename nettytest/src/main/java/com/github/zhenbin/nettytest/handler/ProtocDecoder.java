@@ -1,4 +1,4 @@
-package com.github.zhenbin.nettytest.handler.channel;
+package com.github.zhenbin.nettytest.handler;
 
 import com.github.zhenbin.nettytest.dto.ProtocMsg;
 import io.netty.buffer.ByteBuf;
@@ -27,7 +27,6 @@ public class ProtocDecoder extends LengthFieldBasedFrameDecoder
         int length = in.readInt();
         byte[] bytes = new byte[length];
         in.readBytes(bytes, 0, length);
-        System.out.println(String.format("type: %d, body: %s", type, new String(bytes)));
         return new ProtocMsg(type, bytes);
     }
 }

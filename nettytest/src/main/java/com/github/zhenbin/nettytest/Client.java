@@ -1,4 +1,4 @@
-package com.github.zhenbin.nettytest.client;
+package com.github.zhenbin.nettytest;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -36,21 +36,21 @@ public class Client {
             //读取服务器返回的消息
             InputStream is = s.getInputStream();
             DataInputStream i = new DataInputStream(is);
-            byte[] len = new byte[4];
-            i.readFully(len);
-            ByteBuf readBuf = Unpooled.buffer();
-            readBuf.writeBytes(len);
-            int lengh = readBuf.getInt(0);
-            System.out.println("len:" + lengh);
-            byte[] msg = new byte[lengh];
-            is.read(msg, 0, lengh);
-            System.out.println("服务器：" + new String(msg));
-            Thread.sleep(100 * 1000);
+            for (; ; ) {
+                byte[] len = new byte[4];
+                i.readFully(len);
+                ByteBuf readBuf = Unpooled.buffer();
+                readBuf.writeBytes(len);
+                int lengh = readBuf.getInt(0);
+                System.out.println("len:" + lengh);
+                byte[] msg = new byte[lengh];
+                is.read(msg, 0, lengh);
+                System.out.println("服务器：\n" + new String(msg));
+            }
+//            Thread.sleep(100 * 1000);
         } catch (UnknownHostException e) {
             e.printStackTrace();
         } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }

@@ -1,6 +1,6 @@
 package com.github.zhenbin.nettytest.dto;
 
-public class ProtocMsg
+public class ProtocMsg implements Type
 {
     public final byte type;
     public final byte[] msg;
@@ -9,5 +9,9 @@ public class ProtocMsg
     {
         this.type = type;
         this.msg = msg;
+    }
+
+    public byte getType() {
+        return type;
     }
 }
