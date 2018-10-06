@@ -22,13 +22,17 @@ public class DispatcherHandler<T extends Type> extends ChannelInboundHandlerAdap
         T typedMsg = (T) msg;
         Processor<T> handler = processors.get(typedMsg.getType());
         byte[] resp = "cannot find handler".getBytes();
+
         if (null != handler) {
-            resp = handler.process(typedMsg);
+            resp = handler.process(ctx.channel(), typedMsg);
         }
-        ByteBuf byteBuf = Unpooled.buffer();
-        byteBuf.writeInt(resp.length);
-        byteBuf.writeBytes(resp);
-        ctx.writeAndFlush(byteBuf);
+        if (null != resp) {
+            ByteBuf byteBuf = Unpooled.buffer();
+            byteBuf.writeByte(typedMsg.getType());
+            byteBuf.writeInt(resp.length);
+            byteBuf.writeBytes(resp);
+            ctx.writeAndFlush(byteBuf);
+        }
         //todo release msg
     }
 

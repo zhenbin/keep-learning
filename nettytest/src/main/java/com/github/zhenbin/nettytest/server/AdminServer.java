@@ -7,6 +7,7 @@ import com.github.zhenbin.nettytest.handler.RegisterHandler;
 import com.github.zhenbin.nettytest.processor.Processor;
 import com.github.zhenbin.nettytest.processor.ResponseProcessor;
 import com.github.zhenbin.nettytest.processor.SayHiProcessor;
+import com.github.zhenbin.nettytest.processor.SayHiToExecutorProcessor;
 import com.github.zhenbin.nettytest.util.ChannelMap;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -22,8 +23,8 @@ import java.nio.ByteOrder;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MasterServer {
-    private static final Logger LOGGER = Logger.getLogger(MasterServer.class);
+public class AdminServer {
+    private static final Logger LOGGER = Logger.getLogger(AdminServer.class);
 
     private static final ByteOrder BYTE_ORDER = ByteOrder.BIG_ENDIAN;
     private static final int MAX_FRAME_LENGTH = 1024 * 1024;
@@ -35,16 +36,10 @@ public class MasterServer {
 
     private int port;
     private final Map<Byte, Processor<ProtocMsg>> processors = new HashMap<Byte, Processor<ProtocMsg>>();
-    private final ChannelMap channels = new ChannelMap();
 
-    public MasterServer(int port) {
+    public AdminServer(int port, MasterServer masterServer) {
         this.port = port;
-        processors.put(Byte.valueOf("1"), new SayHiProcessor());
-        processors.put(Byte.valueOf("2"), new ResponseProcessor(channels.getTaskRespMap()));
-    }
-
-    public ChannelMap getChannels() {
-        return channels;
+        processors.put(Byte.valueOf("1"), new SayHiToExecutorProcessor(masterServer.getChannels()));
     }
 
     public void start() throws Exception {
@@ -60,7 +55,6 @@ public class MasterServer {
                             ch.pipeline()
                                     .addLast(new ProtocDecoder())
                                     .addLast(new DispatcherHandler<>(processors))
-                                    .addLast(new RegisterHandler(channels))
                             ;
                             LOGGER.info("finish init channel");
                         }

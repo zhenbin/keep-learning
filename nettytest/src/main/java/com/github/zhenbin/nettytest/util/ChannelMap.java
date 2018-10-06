@@ -11,9 +11,7 @@ import org.apache.log4j.Logger;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -35,13 +33,18 @@ public class ChannelMap {
     private static final Logger LOGGER = Logger.getLogger(ChannelMap.class);
 
     private final Map<ChannelId, Channel> channelMap = new HashMap<>();
+    private final ConcurrentMap<Integer, Resp> taskRespMap = new ConcurrentHashMap<>();
     private final Map<ChannelId, Map<Byte, BlockingQueue<Resp>>> respMap = new HashMap<>();
     // TODO 读写锁要用写的优先级最高的那种
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
     private final Map<Byte, Lock> typeLocks = new HashMap<>();
 
+    public ConcurrentMap<Integer, Resp> getTaskRespMap() {
+        return taskRespMap;
+    }
+
     public ChannelMap(Byte... types) {
-        // todo 是否可以是null
+        // todo types是否可以是null
         for (Byte type : types) {
             // 是不是用ReentrantLock待定
             typeLocks.put(type, new ReentrantLock());
@@ -79,8 +82,75 @@ public class ChannelMap {
         return ch;
     }
 
+    /**
+     * 加上taskId的好处：
+     * 1. 防止重复下发；
+     * 2. 错误容易追溯，便于排查问题；
+     * 3. 设计上看简单，系统更稳定，代码更好维护
+     */
+
+    public Response taskDispatch(ByteBuf cmd, int taskId, long timeout) {
+        Resp resp;
+        lock.readLock().lock();
+        try {
+            // 获取size，所以要先lock
+            Response response = new Response(channelMap.size(), new HashMap<>());
+            resp = new Resp(response);
+            Resp previousResp = taskRespMap.putIfAbsent(taskId, resp);
+            if (null != previousResp) {
+                LOGGER.warn("当前任务已经存在，正在运行, taskId: " + taskId);
+                response.setStatus(Response.TASK_EXISTED);
+                taskRespMap.remove(taskId);
+                return response;
+            }
+
+            for (Channel channel : channelMap.values()) {
+                ByteBuf tmpBuf = cmd.copy();
+                ChannelFuture channelFuture = channel.writeAndFlush(tmpBuf);
+                channelFuture.addListener((ChannelFutureListener) future -> {
+                    if (!future.isSuccess()) {
+                        LOGGER.error("数据写失败, taskId: " + taskId);
+                        future.cause().printStackTrace();
+                        // todo 这里对resp的引用，在for循环里没问题吧？
+                        synchronized (resp) {
+                            // TODO 这里的处理方式是有结点写失败了就返回失败，这样做合理不？？
+                            // 还是换成wait/notify, await/signal 这种形式吧
+                            try {
+                                resp.done.add(true);
+                            } catch (IllegalStateException e) {
+                            }
+                        }
+                    }
+                });
+            }
+        } finally {
+            lock.readLock().unlock();
+        }
+
+        try {
+            Boolean done = resp.done.poll(timeout, TimeUnit.MILLISECONDS);
+            // 在此处统一设置status，防止多线程覆盖写
+            synchronized (resp) {
+                if (null == done) {
+                    resp.response.setStatus(Response.RESPONSE_TIME_OUT);
+                } else if (resp.response.need_count == resp.response.taskResult.size()) {
+                    resp.response.setStatus(Response.SUCCESS);
+                } else {
+                    resp.response.setStatus(Response.SYSTEM_ERROR);
+                }
+            }
+        } catch (InterruptedException e) {
+            resp.response.setStatus(Response.INTERRUPTED);
+            e.printStackTrace();
+        }
+        taskRespMap.remove(taskId);
+        return resp.response;
+    }
+
+
     // todo 把cmd/type 这些弄成一个OutputMsg implements Type。然后在OutBoundHandler encode它。
     // todo 这里的type是指response的type，而不是当前请求的type，必要时得弄一个映射
+    // TODO 要求一下在master下发任务的时候加上taskID，并让返回消息带回taskID，这样可以大大简化设计复杂性，也提高了系统可维护性。
     public Response dispatch(ByteBuf cmd, byte type, long timeout, TimeUnit unit) {
         Response response = new Response(respMap.size(), new HashMap<>());
         Resp resp = new Resp(response);
@@ -164,7 +234,8 @@ public class ChannelMap {
 
             // todo remove me
             int length = result.readableBytes();
-            ByteBuf byteBuf = Unpooled.buffer(length + 4);
+            ByteBuf byteBuf = Unpooled.buffer(1 + 4 + length);
+            byteBuf.writeByte(3);
             byteBuf.writeInt(length);
             byteBuf.writeBytes(result);
 
