@@ -8,6 +8,8 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class DispatcherHandler<T extends Type> extends ChannelInboundHandlerAdapter {
 
@@ -39,6 +41,10 @@ public class DispatcherHandler<T extends Type> extends ChannelInboundHandlerAdap
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         // Close the connection when an exception is raised.
+        ExecutorService executorService = Executors.newFixedThreadPool(3);
+        executorService.execute(() -> {
+            System.out.println("dfs");
+        });
         cause.printStackTrace();
         ctx.close();
     }
