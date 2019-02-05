@@ -1,4 +1,4 @@
-package com.github.zhenbin.statemachine.visualize;
+package com.github.zhenbin.statemachine.visualization;
 
 import com.github.zhenbin.statemachine.StateMachineFactory;
 

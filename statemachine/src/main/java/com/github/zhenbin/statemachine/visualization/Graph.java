@@ -1,4 +1,4 @@
-package com.github.zhenbin.statemachine.visualize;
+package com.github.zhenbin.statemachine.visualization;
 
 
 import org.apache.commons.lang3.StringEscapeUtils;

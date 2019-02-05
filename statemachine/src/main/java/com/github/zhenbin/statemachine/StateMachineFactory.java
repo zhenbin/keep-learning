@@ -1,10 +1,10 @@
 package com.github.zhenbin.statemachine;
 
-import com.github.zhenbin.statemachine.visualize.Graph;
+import com.github.zhenbin.statemachine.visualization.Graph;
 
 import java.util.*;
 
-public class StateMachineFactory<OPERAND, STATE extends Enum<STATE>, EVENTTYPE extends Enum<EVENTTYPE>, EVENT> {
+public final class StateMachineFactory<OPERAND, STATE extends Enum<STATE>, EVENTTYPE extends Enum<EVENTTYPE>, EVENT> {
 
     private final STATE initialState;
 
