@@ -62,7 +62,7 @@ public class StateMachineFactory<OPERAND, STATE extends Enum<STATE>, EVENTTYPE e
 
         private MultipleArcTransition<OPERAND, EVENT, STATE> hook;
 
-        public MultipleTransition(Set<STATE> postStates, MultipleArcTransition<OPERAND, EVENT, STATE> hook) {
+        MultipleTransition(Set<STATE> postStates, MultipleArcTransition<OPERAND, EVENT, STATE> hook) {
             this.validPostStates = postStates;
             this.hook = hook;
         }
