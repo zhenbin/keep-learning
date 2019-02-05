@@ -165,7 +165,6 @@ public class Graph {
         return sb.toString();
     }
 
-    /* http://dreampuf.github.io/GraphvizOnline */
     public String generateGraphViz() {
         return generateGraphViz("");
     }
