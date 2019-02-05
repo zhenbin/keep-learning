@@ -1,9 +1,8 @@
 package com.github.zhenbin.statemachine;
 
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import com.github.zhenbin.statemachine.visualize.Graph;
+
+import java.util.*;
 
 public class StateMachineFactory<OPERAND, STATE extends Enum<STATE>, EVENTTYPE extends Enum<EVENTTYPE>, EVENT> {
 
@@ -79,12 +78,12 @@ public class StateMachineFactory<OPERAND, STATE extends Enum<STATE>, EVENTTYPE e
 
     private class SingleTransition implements Transition<OPERAND, STATE, EVENTTYPE, EVENT> {
 
-        private STATE postStates;
+        private STATE postState;
 
         private SingleArcTransition<OPERAND, EVENT> hook;
 
-        SingleTransition(STATE postStates, SingleArcTransition<OPERAND, EVENT> hook) {
-            this.postStates = postStates;
+        SingleTransition(STATE postState, SingleArcTransition<OPERAND, EVENT> hook) {
+            this.postState = postState;
             this.hook = hook;
         }
 
@@ -92,7 +91,7 @@ public class StateMachineFactory<OPERAND, STATE extends Enum<STATE>, EVENTTYPE e
             if (hook != null) {
                 hook.transition(operand, event);
             }
-            return postStates;
+            return postState;
         }
     }
 
@@ -127,5 +126,27 @@ public class StateMachineFactory<OPERAND, STATE extends Enum<STATE>, EVENTTYPE e
             currentState = StateMachineFactory.this.doTransition(operand, currentState, eventType, event);
             return currentState;
         }
+    }
+
+    public Graph generateStateGraph(String name) {
+        Graph g = new Graph(name);
+        for (STATE startState : stateMachineTable.keySet()) {
+            Map<EVENTTYPE, Transition<OPERAND, STATE, EVENTTYPE, EVENT>> transitions = stateMachineTable.get(startState);
+            for (Map.Entry<EVENTTYPE, Transition<OPERAND, STATE, EVENTTYPE, EVENT>> entry : transitions.entrySet()) {
+                Transition<OPERAND, STATE, EVENTTYPE, EVENT> transition = entry.getValue();
+                if (transition instanceof StateMachineFactory.SingleTransition) {
+                    Graph.Node fromNode = g.getNode(startState.toString());
+                    Graph.Node toNode = g.getNode(((SingleTransition) transition).postState.toString());
+                    fromNode.addEdge(toNode, entry.getKey().toString());
+                } else if (transition instanceof StateMachineFactory.MultipleTransition) {
+                    for (Object o : ((MultipleTransition) transition).validPostStates) {
+                        Graph.Node fromNode = g.getNode(startState.toString());
+                        Graph.Node toNode = g.getNode(o.toString());
+                        fromNode.addEdge(toNode, entry.getKey().toString());
+                    }
+                }
+            }
+        }
+        return g;
     }
 }

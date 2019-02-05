@@ -55,5 +55,7 @@ public class NodeImpl {
         node.handle(new NodeEvent(NodeEventType.EXECUTOR_DISCONNECT));
         node.handle(new NodeEvent(NodeEventType.AGENT_CONNECT));
         node.handle(new NodeEvent(NodeEventType.AGENT_CONNECT));
+
+        log.info("{}", stateMachineFactory.generateStateGraph("nodeImpl").generateGraphViz());
     }
 }
